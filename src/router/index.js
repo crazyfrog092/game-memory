@@ -1,14 +1,23 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
-import index from '@/views/index.vue';
+import main from '@/views/index.vue';
+import game from '@/views/game.vue';
 
 Vue.use(VueRouter);
 
 const routes = [
   {
     path: '/',
-    name: 'Index',
-    component: index,
+    name: 'Main',
+    component: main,
+    meta: {
+      layout: 'empty-layout',
+    },
+  },
+  {
+    path: '/game',
+    name: 'Game',
+    component: game,
   },
 ];
 
