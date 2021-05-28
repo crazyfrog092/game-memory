@@ -3,21 +3,30 @@
   <div class="menu">
     <div class="menu__wrap">
       <div class="menu__box">
-        <div class="menu__item">
+        <button
+          class="menu__item"
+          @click="restart()"
+        >
           Restart
-        </div>
-        <div class="menu__item">
+        </button>
+        <button
+          class="menu__item"
+          disabled
+        >
           Settings
-        </div>
-        <div
+        </button>
+        <button
           class="menu__item"
           @click="exit()"
         >
           Exit
-        </div>
-        <div class="menu__item">
+        </button>
+        <button
+          class="menu__item"
+          @click="closeMenu()"
+        >
           Continue
-        </div>
+        </button>
       </div>
     </div>
   </div>
@@ -29,6 +38,14 @@ export default {
   methods: {
     exit() {
       this.$router.push({ name: 'Main' });
+      this.$emit('closeMenu');
+    },
+    closeMenu() {
+      this.$emit('closeMenu');
+    },
+    restart() {
+      window.EventBus.$emit('RESTART_GAME');
+      this.closeMenu();
     },
   },
 };
@@ -36,6 +53,7 @@ export default {
 
 <style lang="scss" scoped>
 .menu {
+  z-index: 10;
   position: absolute;
   width: 100vw;
   height: 100vh;
@@ -53,20 +71,32 @@ export default {
   &__box {
     width: 100%;
     background-color: #080808;
-    padding: 15px;
+    padding: 25px 15px;
     display: grid;
     gap: 50px;
+    border-radius: 12px;
   }
   &__item {
-    font-size: 25px;
+    font-size: 24px;
     font-weight: bold;
     width: 100%;
     height: 50px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     background-color: darkred;
     cursor: pointer;
+    color: white;
+    transition: .3s;
+    &:hover {
+      background-color: darken(darkred, 5%);
+    }
+    &:disabled {
+      transition: none;
+      background-color: darken(grey, 15%);
+      cursor: default;
+    }
   }
 }
 </style>

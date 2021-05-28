@@ -1,7 +1,10 @@
 <template>
   <!-- слой с меню -->
   <div class="background">
-    <Menu v-if="menu" />
+    <Menu
+      v-if="menu"
+      @closeMenu="closeMenu()"
+    />
     <slot />
   </div>
 </template>
@@ -31,6 +34,9 @@ export default {
     },
     toggleMenu() {
       this.menu = !this.menu;
+    },
+    closeMenu() {
+      this.menu = false;
     },
   },
 };

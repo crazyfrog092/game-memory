@@ -1,6 +1,12 @@
 <template>
   <div class="game">
-    <div class="game__cards">
+    <div class="message">
+      Click on "ESC" to show the menu
+    </div>
+    <div
+      v-if="!gameOverStatus"
+      class="game__cards"
+    >
       <div
         v-for="card in gameArray"
         :key="card.id"
@@ -42,6 +48,18 @@
         />
       </div>
     </div>
+
+    <div
+      v-else
+      class="gameover"
+    >
+      <div class="gameover__title">
+        Game Over
+      </div>
+      <div class="gameover__text">
+        Your time: {{ timeFormat }}
+      </div>
+    </div>
   </div>
 </template>
 
@@ -55,6 +73,9 @@ export default {
       cardWidth: 0,
       gameArray: [],
       cardTimer: null,
+      gameTimer: null,
+      time: 0,
+      gameOverStatus: false,
     };
   },
   computed: {
@@ -64,9 +85,19 @@ export default {
       shirt: 'getShirt',
     }),
 
+    // оставшиеся карточки
+    remainingCards() {
+      return this.gameArray.filter((card) => card.found === false) || [];
+    },
+
     // пара открытых карточек
     pairOfCards() {
       return this.gameArray.filter((card) => card.opened === true);
+    },
+
+    // правильный формат времени
+    timeFormat() {
+      return this.$moment('1900-01-01 00:00:00').add(this.time, 'seconds').format('mm:ss');
     },
   },
   watch: {
@@ -90,8 +121,17 @@ export default {
         }
       }
     },
+
+    // смотри на оставшиеся карточки
+    remainingCards() {
+      // если карточек не осталось, то конец игры
+      if (!this.remainingCards.length) {
+        this.gameOver();
+      }
+    },
   },
   created() {
+    window.EventBus.$on('RESTART_GAME', this.restartGame);
     // для адаптивности
     window.addEventListener('resize', this.onResize);
   },
@@ -102,6 +142,7 @@ export default {
     this.startGame();
   },
   beforeDestroy() {
+    window.EventBus.$off('RESTART_GAME', this.restartGame);
     // для адаптивности
     window.removeEventListener('resize', this.onResize);
   },
@@ -112,6 +153,20 @@ export default {
       this.gameArray = this.doCopyCards();
       // и перемешиваем их
       this.gameArray = this.doRandomize(this.gameArray);
+      // включаем таймер
+      this.turnOnTheTimer();
+    },
+
+    restartGame() {
+      this.clearData();
+      this.startGame();
+    },
+
+    gameOver() {
+      this.gameOverStatus = true;
+      this.turnOffTheTimer();
+      // сохраняем наш результат
+      this.$store.commit('setResult', this.time);
     },
 
     // копируем карточки и добавляем параметры для игры
@@ -178,6 +233,27 @@ export default {
       });
     },
 
+    turnOnTheTimer() {
+      this.gameTimer = setInterval(() => {
+        this.time += 1;
+      }, 1000);
+    },
+
+    turnOffTheTimer() {
+      clearInterval(this.gameTimer);
+    },
+
+    // очистка данных
+    clearData() {
+      clearInterval(this.cardTimer);
+      clearInterval(this.gameTimer);
+      this.gameArray = [];
+      this.cardTimer = null;
+      this.gameTimer = null;
+      this.time = 0;
+      this.gameOverStatus = false;
+    },
+
     // ширина карточки в зависимости от параметров экрана
     onResize() {
       if (window.innerHeight > window.innerWidth) {
@@ -192,6 +268,8 @@ export default {
 
 <style lang="scss" scoped>
 .game {
+  z-index: 5;
+  position: relative;
   padding: 20px;
   width: 100vw;
   height: 100vh;
@@ -221,7 +299,7 @@ export default {
     }
     &_destroing {
       transition: .5s ease-out;
-      z-index: 1;
+      z-index: 7;
       transform: scale(1.15);
     }
   }
@@ -231,7 +309,40 @@ export default {
     border-radius: 10px;
   }
 }
+.gameover {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  top: 300px;
+  transform: translateY(-400px);
+  transition: 5s linear;
+  &__title {
+    font-size: 86px;
+    line-height: 1.15;
+    text-align: center;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: orange;
+    width: fit-content;
+    margin-bottom: 50px;
+  }
+  &__text {
+    font-size: 36px;
+    line-height: 1.25;
+    font-weight: bold;
+    width: fit-content;
+  }
+}
 .clickable {
   cursor: pointer;
+}
+.message {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  width: 150px;
+  font-size: 18px;
+  text-align: center;
 }
 </style>

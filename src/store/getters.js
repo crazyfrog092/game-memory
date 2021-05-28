@@ -17,4 +17,6 @@ export default {
   },
   getLenght: (state) => state.lenght,
   getShirt: (state) => state.shirt,
+  getResults: (state) => state.results.sort((a, b) => (a.result > b.result ? 1 : -1)),
+  getUserName: (state) => state.userName,
 };
